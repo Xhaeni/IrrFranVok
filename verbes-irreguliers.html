@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verbes irréguliers – Konjugationstrainer</title>
+<style>
+  :root{
+    --bg:#f4f1ea; --card:#fff; --ink:#1f2430; --muted:#6b7080;
+    --blue:#1d4e89; --ok:#2e7d32; --okbg:#e8f5e9; --bad:#c62828; --badbg:#fdecea;
+    --line:#d9d4c7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:var(--blue);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+  header h1{font-size:1.25rem;margin:0}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:.95rem}
+  select{font-size:1rem;padding:6px 8px;border-radius:6px;border:none}
+  label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
+  main{max-width:720px;margin:24px auto;padding:0 16px}
+  .card{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:24px}
+  .top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .verb{font-size:2.2rem;font-weight:700;color:var(--blue)}
+  .trans{color:var(--muted);font-size:1rem;margin-left:8px;font-weight:400}
+  .tense{font-size:.95rem;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:20px}
+  .row{display:flex;align-items:center;gap:10px}
+  .pron{width:78px;text-align:right;font-weight:600;color:var(--muted);flex-shrink:0}
+  .row input{flex:1;min-width:0;font-size:1.15rem;padding:10px 12px;border:2px solid var(--line);border-radius:8px;outline:none}
+  .row input:focus{border-color:var(--blue)}
+  .row input.ok{border-color:var(--ok);background:var(--okbg)}
+  .row input.bad{border-color:var(--bad);background:var(--badbg)}
+  .sol{grid-column:1/-1;font-size:.9rem;color:var(--bad);margin:-6px 0 0 88px}
+  .solcell{font-size:.9rem;color:var(--bad);margin:2px 0 0 88px;min-height:0}
+  .accents{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+  .accents button{font-size:1.1rem;width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:#faf8f3;cursor:pointer}
+  .accents button:active{background:#e6e0d2}
+  .actions{display:flex;gap:12px;align-items:center;margin-top:20px;flex-wrap:wrap}
+  .btn{font-size:1.05rem;padding:11px 22px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.next{background:var(--ok);color:#fff}
+  .btn:disabled{opacity:.4;cursor:default}
+  .msg{font-weight:600}
+  .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:.92rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+  .stats b{color:var(--ink)}
+  details{margin-top:18px;background:var(--card);border-radius:14px;padding:14px 20px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  summary{cursor:pointer;font-weight:600}
+  .verblist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:12px;font-size:.95rem}
+  .vlbtns{margin-top:10px;display:flex;gap:8px}
+  .vlbtns button{font-size:.85rem;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#faf8f3;cursor:pointer}
+  @media (max-width:560px){ .grid{grid-template-columns:1fr} .verb{font-size:1.8rem} }
+</style>
+</head>
+<body>
+<header>
+  <h1>🇫🇷 Verbes irréguliers</h1>
+  <div class="controls">
+    <label>Zeit:
+      <select id="tenseSel">
+        <option value="present">Présent</option>
+        <option value="passe">Passé composé</option>
+        <option value="imparfait">Imparfait</option>
+        <option value="futur">Futur simple</option>
+        <option value="conditionnel">Conditionnel présent</option>
+      </select>
+    </label>
+    <label class="chk"><input type="checkbox" id="strictAcc" checked> Akzente streng prüfen</label>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="top">
+      <div class="verb"><span id="inf"></span><span class="trans" id="trans"></span></div>
+      <div class="tense" id="tenseLbl"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+
+    <div class="accents" id="accents"></div>
+
+    <div class="actions">
+      <button class="btn primary" id="checkBtn">Prüfen</button>
+      <button class="btn next" id="nextBtn" style="display:none">Nächstes Verb →</button>
+      <span class="msg" id="msg"></span>
+    </div>
+
+    <div class="stats">
+      <span>Versuch: <b id="attempt">1</b> / 3</span>
+      <span>Verben bearbeitet: <b id="sDone">0</b></span>
+      <span>Richtig im 1. Versuch: <b id="sFirst">0</b></span>
+      <span>Insgesamt richtig: <b id="sOk">0</b></span>
+      <span>Nicht geschafft: <b id="sFail">0</b></span>
+    </div>
+  </div>
+
+  <details>
+    <summary>Verben auswählen</summary>
+    <div class="vlbtns"><button id="allOn">Alle</button><button id="allOff">Keine</button></div>
+    <div class="verblist" id="verblist"></div>
+  </details>
+</main>
+
+<script>
+// ---------- Daten ----------
+// pres: Präsensformen, pp: Partizip, aux: Hilfsverb, fut: Futurstamm
+const VERBS = [
+ {inf:"être",de:"sein",pres:["suis","es","est","sommes","êtes","sont"],pp:"été",aux:"avoir",fut:"ser",imp:"ét"},
+ {inf:"avoir",de:"haben",pres:["ai","as","a","avons","avez","ont"],pp:"eu",aux:"avoir",fut:"aur"},
+ {inf:"aller",de:"gehen",pres:["vais","vas","va","allons","allez","vont"],pp:"allé",aux:"être",fut:"ir"},
+ {inf:"faire",de:"machen",pres:["fais","fais","fait","faisons","faites","font"],pp:"fait",aux:"avoir",fut:"fer"},
+ {inf:"venir",de:"kommen",pres:["viens","viens","vient","venons","venez","viennent"],pp:"venu",aux:"être",fut:"viendr"},
+ {inf:"devenir",de:"werden",pres:["deviens","deviens","devient","devenons","devenez","deviennent"],pp:"devenu",aux:"être",fut:"deviendr"},
+ {inf:"tenir",de:"halten",pres:["tiens","tiens","tient","tenons","tenez","tiennent"],pp:"tenu",aux:"avoir",fut:"tiendr"},
+ {inf:"pouvoir",de:"können",pres:["peux","peux","peut","pouvons","pouvez","peuvent"],pp:"pu",aux:"avoir",fut:"pourr"},
+ {inf:"vouloir",de:"wollen",pres:["veux","veux","veut","voulons","voulez","veulent"],pp:"voulu",aux:"avoir",fut:"voudr"},
+ {inf:"devoir",de:"müssen",pres:["dois","dois","doit","devons","devez","doivent"],pp:"dû",aux:"avoir",fut:"devr"},
+ {inf:"savoir",de:"wissen",pres:["sais","sais","sait","savons","savez","savent"],pp:"su",aux:"avoir",fut:"saur"},
+ {inf:"prendre",de:"nehmen",pres:["prends","prends","prend","prenons","prenez","prennent"],pp:"pris",aux:"avoir",fut:"prendr"},
+ {inf:"comprendre",de:"verstehen",pres:["comprends","comprends","comprend","comprenons","comprenez","comprennent"],pp:"compris",aux:"avoir",fut:"comprendr"},
+ {inf:"mettre",de:"legen, stellen",pres:["mets","mets","met","mettons","mettez","mettent"],pp:"mis",aux:"avoir",fut:"mettr"},
+ {inf:"dire",de:"sagen",pres:["dis","dis","dit","disons","dites","disent"],pp:"dit",aux:"avoir",fut:"dir"},
+ {inf:"voir",de:"sehen",pres:["vois","vois","voit","voyons","voyez","voient"],pp:"vu",aux:"avoir",fut:"verr"},
+ {inf:"croire",de:"glauben",pres:["crois","crois","croit","croyons","croyez","croient"],pp:"cru",aux:"avoir",fut:"croir"},
+ {inf:"lire",de:"lesen",pres:["lis","lis","lit","lisons","lisez","lisent"],pp:"lu",aux:"avoir",fut:"lir"},
+ {inf:"écrire",de:"schreiben",pres:["écris","écris","écrit","écrivons","écrivez","écrivent"],pp:"écrit",aux:"avoir",fut:"écrir"},
+ {inf:"boire",de:"trinken",pres:["bois","bois","boit","buvons","buvez","boivent"],pp:"bu",aux:"avoir",fut:"boir"},
+ {inf:"partir",de:"abfahren",pres:["pars","pars","part","partons","partez","partent"],pp:"parti",aux:"être",fut:"partir"},
+ {inf:"sortir",de:"ausgehen",pres:["sors","sors","sort","sortons","sortez","sortent"],pp:"sorti",aux:"être",fut:"sortir"},
+ {inf:"dormir",de:"schlafen",pres:["dors","dors","dort","dormons","dormez","dorment"],pp:"dormi",aux:"avoir",fut:"dormir"},
+ {inf:"connaître",de:"kennen",pres:["connais","connais","connaît","connaissons","connaissez","connaissent"],pp:"connu",aux:"avoir",fut:"connaîtr"},
+ {inf:"recevoir",de:"erhalten",pres:["reçois","reçois","reçoit","recevons","recevez","reçoivent"],pp:"reçu",aux:"avoir",fut:"recevr"},
+ {inf:"ouvrir",de:"öffnen",pres:["ouvre","ouvres","ouvre","ouvrons","ouvrez","ouvrent"],pp:"ouvert",aux:"avoir",fut:"ouvrir"},
+ {inf:"courir",de:"laufen, rennen",pres:["cours","cours","court","courons","courez","courent"],pp:"couru",aux:"avoir",fut:"courr"},
+ {inf:"vivre",de:"leben",pres:["vis","vis","vit","vivons","vivez","vivent"],pp:"vécu",aux:"avoir",fut:"vivr"},
+ {inf:"suivre",de:"folgen",pres:["suis","suis","suit","suivons","suivez","suivent"],pp:"suivi",aux:"avoir",fut:"suivr"},
+ {inf:"conduire",de:"fahren (Auto)",pres:["conduis","conduis","conduit","conduisons","conduisez","conduisent"],pp:"conduit",aux:"avoir",fut:"conduir"},
+ {inf:"envoyer",de:"schicken",pres:["envoie","envoies","envoie","envoyons","envoyez","envoient"],pp:"envoyé",aux:"avoir",fut:"enverr"},
+ {inf:"rire",de:"lachen",pres:["ris","ris","rit","rions","riez","rient"],pp:"ri",aux:"avoir",fut:"rir"},
+ {inf:"mourir",de:"sterben",pres:["meurs","meurs","meurt","mourons","mourez","meurent"],pp:"mort",aux:"être",fut:"mourr"},
+ {inf:"naître",de:"geboren werden",pres:["nais","nais","naît","naissons","naissez","naissent"],pp:"né",aux:"être",fut:"naîtr"}
+];
+
+const TENSES = {present:"Présent",passe:"Passé composé",imparfait:"Imparfait",futur:"Futur simple",conditionnel:"Conditionnel présent"};
+const PRON = ["je","tu","il / elle / on","nous","vous","ils / elles"];
+const AUX = {avoir:["ai","as","a","avons","avez","ont"], être:["suis","es","est","sommes","êtes","sont"]};
+const IMP_END = ["ais","ais","ait","ions","iez","aient"];
+const FUT_END = ["ai","as","a","ons","ez","ont"];
+
+// liefert pro Person: {show: Anzeige der Lösung, accept: Liste akzeptierter Antworten}
+function conjugate(v, tense){
+  const out = [];
+  for(let i=0;i<6;i++){
+    let show, accept;
+    if(tense==="present"){ show=v.pres[i]; accept=[show]; }
+    else if(tense==="imparfait"){
+      const stem = v.imp || v.pres[3].replace(/ons$/,"");
+      show = stem+IMP_END[i]; accept=[show];
+    }
+    else if(tense==="futur"){ show=v.fut+FUT_END[i]; accept=[show]; }
+    else if(tense==="conditionnel"){ show=v.fut+IMP_END[i]; accept=[show]; }
+    else if(tense==="passe"){
+      const a = AUX[v.aux][i];
+      if(v.aux==="être"){
+        const p=v.pp;
+        if(i<3){ show=`${a} ${p}(e)`; accept=[`${a} ${p}`,`${a} ${p}e`]; }
+        else if(i===4){ show=`${a} ${p}(e)(s)`; accept=[p,p+"e",p+"s",p+"es"].map(x=>`${a} ${x}`); }
+        else { show=`${a} ${p}s / ${p}es`; accept=[`${a} ${p}s`,`${a} ${p}es`]; }
+      } else { show=`${a} ${v.pp}`; accept=[show]; }
+    }
+    out.push({show, accept});
+  }
+  return out;
+}
+
+// ---------- Hilfsfunktionen ----------
+const stripAcc = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+function norm(s, strict){
+  s = s.toLowerCase().replace(/[’`´]/g,"'").replace(/\s+/g," ").trim();
+  // Pronomen entfernen, falls mit eingegeben
+  s = s.replace(/^(je |j'|j' |tu |il |elle |on |nous |vous |ils |elles )/,"").trim();
+  return strict ? s : stripAcc(s);
+}
+function pronLabel(i, firstWord){
+  if(i===0) return /^[aeiouyhéèêâîôû]/i.test(firstWord) ? "j'" : "je";
+  return PRON[i];
+}
+
+// ---------- Zustand ----------
+const $ = id => document.getElementById(id);
+let active = new Set(VERBS.map(v=>v.inf));
+let queue = [], current = null, forms = [], attempt = 1, finished = false;
+const stats = {done:0, first:0, ok:0, fail:0};
+
+function refillQueue(){
+  queue = VERBS.filter(v=>active.has(v.inf));
+  for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
+  if(current && queue.length>1 && queue[0].inf===current.inf) queue.push(queue.shift());
+}
+
+function nextVerb(){
+  if(active.size===0){ $("msg").textContent="Bitte mindestens ein Verb auswählen."; $("msg").className="msg bad"; return; }
+  if(queue.length===0) refillQueue();
+  current = queue.shift();
+  render();
+}
+
+function render(){
+  const tense = $("tenseSel").value;
+  forms = conjugate(current, tense);
+  attempt = 1; finished = false;
+  $("inf").textContent = current.inf;
+  $("trans").textContent = "(" + current.de + ")";
+  $("tenseLbl").textContent = TENSES[tense];
+  $("attempt").textContent = attempt;
+  $("msg").textContent = ""; $("msg").className="msg";
+  $("checkBtn").style.display=""; $("checkBtn").disabled=false;
+  $("nextBtn").style.display="none";
+  const g = $("grid"); g.innerHTML="";
+  // Reihenfolge: links Singular, rechts Plural
+  const order=[0,3,1,4,2,5];
+  order.forEach(i=>{
+    const wrap=document.createElement("div");
+    const firstWord = forms[i].show.split(" ")[0];
+    wrap.innerHTML=`<div class="row"><span class="pron">${pronLabel(i, firstWord)}</span>
+      <input type="text" id="in${i}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i="${i}"></div>
+      <div class="solcell" id="sol${i}"></div>`;
+    g.appendChild(wrap);
+  });
+  // Enter-Navigation: in Personenreihenfolge 1..6
+  for(let i=0;i<6;i++){
+    $("in"+i).addEventListener("keydown",e=>{
+      if(e.key!=="Enter") return;
+      e.preventDefault();
+      if(finished){ nextVerb(); return; }
+      const next = [...Array(6).keys()].slice(i+1).find(k=>!$("in"+k).classList.contains("ok"));
+      if(next!==undefined && !$("in"+next).value) $("in"+next).focus(); else check();
+    });
+    $("in"+i).addEventListener("focus",()=>lastFocus=$("in"+i));
+  }
+  $("in0").focus();
+}
+
+function check(){
+  if(finished) return;
+  const strict = $("strictAcc").checked;
+  let allOk = true;
+  for(let i=0;i<6;i++){
+    const inp=$("in"+i);
+    const val=norm(inp.value, strict);
+    const ok = forms[i].accept.some(a=>norm(a,strict)===val);
+    inp.classList.toggle("ok",ok); inp.classList.toggle("bad",!ok);
+    if(ok) inp.readOnly=true; else allOk=false;
+  }
+  if(allOk){
+    finished=true; stats.done++; stats.ok++; if(attempt===1) stats.first++;
+    $("msg").textContent = attempt===1 ? "Parfait ! Alles richtig." : "Très bien ! Alles richtig.";
+    $("msg").className="msg ok";
+    endVerb();
+  } else if(attempt>=3){
+    finished=true; stats.done++; stats.fail++;
+    for(let i=0;i<6;i++) if($("in"+i).classList.contains("bad")) $("sol"+i).textContent="→ "+forms[i].show;
+    $("msg").textContent="Drei Versuche vorbei – hier die Lösungen.";
+    $("msg").className="msg bad";
+    endVerb();
+  } else {
+    attempt++; $("attempt").textContent=attempt;
+    $("msg").textContent=`Noch nicht ganz – Versuch ${attempt} von 3.`;
+    $("msg").className="msg bad";
+    const firstBad=[...Array(6).keys()].find(k=>$("in"+k).classList.contains("bad"));
+    $("in"+firstBad).focus(); $("in"+firstBad).select();
+  }
+  updateStats();
+}
+
+function endVerb(){
+  $("checkBtn").style.display="none";
+  $("nextBtn").style.display="";
+  $("nextBtn").focus();
+}
+function updateStats(){
+  $("sDone").textContent=stats.done; $("sFirst").textContent=stats.first;
+  $("sOk").textContent=stats.ok; $("sFail").textContent=stats.fail;
+}
+
+// ---------- Akzent-Tasten ----------
+let lastFocus=null;
+"é è ê à â ç î ï ô û ù ë".split(" ").forEach(ch=>{
+  const b=document.createElement("button"); b.textContent=ch; b.type="button";
+  b.addEventListener("mousedown",e=>e.preventDefault());
+  b.addEventListener("click",()=>{
+    const t=lastFocus; if(!t||t.readOnly) return;
+    const s=t.selectionStart??t.value.length, e=t.selectionEnd??s;
+    t.value=t.value.slice(0,s)+ch+t.value.slice(e);
+    t.focus(); t.setSelectionRange(s+1,s+1);
+  });
+  $("accents").appendChild(b);
+});
+
+// ---------- Verbauswahl ----------
+function buildVerbList(){
+  const vl=$("verblist"); vl.innerHTML="";
+  VERBS.forEach(v=>{
+    const l=document.createElement("label"); l.className="chk";
+    l.innerHTML=`<input type="checkbox" ${active.has(v.inf)?"checked":""}> ${v.inf}`;
+    l.querySelector("input").addEventListener("change",e=>{
+      e.target.checked?active.add(v.inf):active.delete(v.inf);
+      refillQueue();
+    });
+    vl.appendChild(l);
+  });
+}
+$("allOn").onclick=()=>{active=new Set(VERBS.map(v=>v.inf));buildVerbList();refillQueue();};
+$("allOff").onclick=()=>{active.clear();buildVerbList();refillQueue();};
+
+// ---------- Events ----------
+$("checkBtn").onclick=check;
+$("nextBtn").onclick=nextVerb;
+$("tenseSel").onchange=()=>{ if(current) render(); };
+
+buildVerbList();
+refillQueue();
+nextVerb();
+</script>
+</body>
+</html>
