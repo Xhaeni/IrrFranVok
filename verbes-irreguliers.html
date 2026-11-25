@@ -23,10 +23,11 @@
   .verb{font-size:2.2rem;font-weight:700;color:var(--blue)}
   .trans{color:var(--muted);font-size:1rem;margin-left:8px;font-weight:400}
   .tense{font-size:.95rem;color:var(--muted)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:20px}
-  .row{display:flex;align-items:center;gap:10px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px;margin-top:20px}
+  .grid > div{min-width:0}
+  .row{display:flex;align-items:center;gap:10px;min-width:0}
   .pron{width:78px;text-align:right;font-weight:600;color:var(--muted);flex-shrink:0}
-  .row input{flex:1;min-width:0;font-size:1.15rem;padding:10px 12px;border:2px solid var(--line);border-radius:8px;outline:none}
+  .row input{flex:1 1 0;width:100%;min-width:0;font-size:1.15rem;padding:10px 12px;border:2px solid var(--line);border-radius:8px;outline:none}
   .row input:focus{border-color:var(--blue)}
   .row input.ok{border-color:var(--ok);background:var(--okbg)}
   .row input.bad{border-color:var(--bad);background:var(--badbg)}
@@ -49,7 +50,8 @@
   .verblist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:12px;font-size:.95rem}
   .vlbtns{margin-top:10px;display:flex;gap:8px}
   .vlbtns button{font-size:.85rem;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#faf8f3;cursor:pointer}
-  @media (max-width:560px){ .grid{grid-template-columns:1fr} .verb{font-size:1.8rem} }
+  .card{width:100%;overflow:hidden}
+  @media (max-width:640px){ .grid{grid-template-columns:minmax(0,1fr)} .verb{font-size:1.8rem} .card{padding:18px} }
 </style>
 </head>
 <body>
